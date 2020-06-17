@@ -1,2 +1,1 @@
-# autoreport_python
-利用zabbix api实现自动化生成巡检报告
+## 利用zabbix api实现自动化生成巡检报告
