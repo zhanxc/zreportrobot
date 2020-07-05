@@ -72,7 +72,91 @@ def gethosts(groupids,auth):
     return json.loads(gethost.content)['result']
 
 def gethist(gethosts,token,timestamp):
-    pass
+    row_records = []
+
+    for host in gethosts:
+
+        print(host)
+        item1 = []
+        item2 = []
+        dic = {}
+
+        for itemid in ['vfs.fs.size[total]','vm.memory.size[total]','system.cup.load']:
+            # 根据监控项获取监控id
+            data = {
+                "jsonrpc":"2.0",
+                "method":"item.get",
+                "params":{
+                "output": ["itemid"],
+                "search": {
+                    "key_": itemid
+                },
+                "hostids": host['hostid']
+                },
+                "auth": auth,
+                "id": 1
+            }
+            getitem = requests.post(url=url,headers=headers,json=data)
+            itemvalue = json.loads(getitem.content)['result']
+            # 获取历史数据
+            hisdata = {
+                "jsonrpc": "2.0",
+                "method": "history.get",
+                "params": {
+                "output": "extend",
+                "time_from": timestamp[0],
+                # "time_till": timestamp[1],
+                "hostids": 0,
+                "sortfield": "clock",
+                "sortorder": "DESC",
+                "itemids": '%s' %(itemvalue[0]['itemid']),
+                "limit": 1
+                },
+                "auth": auth,
+                "id": 1
+            }
+            gethistory = requests.post(url=url,headers=headers,json=data)
+            history = json.loads(gethistory.content)['result']
+            item1 = item1.append(history)
+
+            for itemid in ['vfs.fs.size[used]','vm.memory.size[used]','system.cup.load']:
+            # 根据监控项获取监控id
+            data = {
+                "jsonrpc":"2.0",
+                "method":"item.get",
+                "params":{
+                "output": ["itemid"],
+                "search": {
+                    "key_": itemid
+                },
+                "hostids": host['hostid']
+                },
+                "auth": auth,
+                "id": 1
+            }
+            getitem = requests.post(url=url,headers=headers,json=data)
+            itemvalue = json.loads(getitem.content)['result']
+            # 获取趋势数据
+            trendata = {
+                "jsonrpc": "2.0",
+                "method": "trend.get",
+                "params": {
+                "output": ["itemid", "value_max", "value_avg"],
+                "time_from": timestamp[0],
+                "time_till": timestamp[1],
+                "itemids": '%s' %(itemvalue[0]['itemid']),
+                "limit": 1
+                },
+                "auth": auth,
+                "id": 1
+            }
+            gettrend = requests.post(url=url,headers=headers,json=data)
+            trend = json.loads(gettrend.content)['result']
+            item2 = item2.append(history)
+        print(item1)
+        print(item2)
+        dic['Hostname'] = host['name']
+        
 
 def writecsv(gethist):
     pass
